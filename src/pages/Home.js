@@ -4,12 +4,14 @@ import {
   compose,
   withState,
   withProps,
-  lifecycle
+  lifecycle,
+  withStateHandlers
 } from 'recompose';
 
 import firebaseApp from '../tools/firebase';
 
 import {
+  InfoWindow,
   Marker,
   GoogleMap,
   withGoogleMap,
@@ -25,6 +27,7 @@ import {
 } from 'reactstrap';
 
 import Card from '../layout/Card';
+import Pin from '../layout/Pin';
 
 const devices = [
   "LATTE-001",
@@ -89,6 +92,13 @@ const enchance = compose(
     containerElement: <div style={{ height: `100vh` }} />,
     mapElement: <div style={{ height: `100%` }} />,
   }),
+  withStateHandlers(() => ({
+    isOpen: false,
+  }), {
+    onToggleOpen: ({ isOpen }) => () => ({
+      isOpen: !isOpen,
+    })
+  }),
   withScriptjs,
   withGoogleMap
 );
@@ -102,8 +112,14 @@ const Map = enchance((props) =>
       devices.map((device, index) => (
         <Marker
           key={device}
+          id={index}
           position={devicesLocation[index]}
-        />
+          onClick={props.onToggleOpen}
+          >
+            {/* {props.isOpen && <InfoWindow key={device} onCloseClick={props.onToggleOpen}>
+              { props.id }
+            </InfoWindow>} */}
+          </Marker>
       ))
     }
     
@@ -113,7 +129,7 @@ const Map = enchance((props) =>
 const enchance2 = compose(
   withState("devicesData", "setDevicesData", []),
   lifecycle({
-    componentDidMount() {
+    componentWillMount() {
       devices.map((name, index) => {
         const device = firebaseApp.database().ref(`devices/${name}`).limitToLast(1).on("child_added", (snapshot) => {
           //console.log(index, snapshot.val());
@@ -178,11 +194,11 @@ const Home = (props) => {
               color: 'white',
               marginBottom: 16
             }}>สภาพอากาศปัจจุบัน °C</div>
-            <Card />
-            <Card />
-            <Card />
-            <Card />
-            <Card />
+            {
+              props.devicesData.map((data, index) => (
+                <Card key={devices[index]} temperature={data.temperature} />
+              ))
+            }
           </Col>
         </Row>
       </Container>
