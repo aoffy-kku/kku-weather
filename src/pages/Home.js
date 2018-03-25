@@ -99,12 +99,14 @@ const Map = enchance((props) =>
     defaultCenter={{ lat: 16.5986803, lng: 102.4644866 }}
   >
     {
-      devices.map((index) => (
+      devices.map((device, index) => (
         <Marker
+          key={device}
           position={devicesLocation[index]}
         />
       ))
     }
+    
   </GoogleMap>
 );
 
@@ -114,7 +116,7 @@ const enchance2 = compose(
     componentDidMount() {
       devices.map((name, index) => {
         const device = firebaseApp.database().ref(`devices/${name}`).limitToLast(1).on("child_added", (snapshot) => {
-          console.log(index, snapshot.val());
+          //console.log(index, snapshot.val());
           this.props.setDevicesData(this.props.devicesData);
         });
       });
