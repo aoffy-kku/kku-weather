@@ -4,9 +4,13 @@ import {
   compose,
   withState,
   withProps,
+  lifecycle
 } from 'recompose';
 
+import firebaseApp from '../tools/firebase';
+
 import {
+  Marker,
   GoogleMap,
   withGoogleMap,
   withScriptjs,
@@ -22,6 +26,62 @@ import {
 
 import Card from '../layout/Card';
 
+const devices = [
+  "LATTE-001",
+  "LATTE-002",
+  "LATTE-003",
+  "LATTE-004",
+  "LATTE-005",
+  "LATTE-006",
+  "LATTE-007",
+  "LATTE-008",
+  "LATTE-009",
+  "LATTE-010"
+];
+
+const devicesLocation = [
+  {
+    lat: 16.708259,
+    lng: 102.325263
+  },
+  {
+    lat: 16.584572,
+    lng: 102.606009
+  },
+  {
+    lat: 16.481216,
+    lng: 102.824182
+  },
+  {
+    lat: 15.808843,
+    lng: 102.677270
+  },
+  {
+    lat: 15.911962,
+    lng: 102.762177
+  },
+  {
+    lat: 15.854813,
+    lng: 102.446731
+  },
+  {
+    lat: 16.055341,
+    lng: 102.540599
+  },
+  {
+    lat: 16.331049,
+    lng: 102.556804
+  },
+  {
+    lat: 16.549110,
+    lng: 102.245915
+  },
+  {
+    lat: 16.641193,
+    lng: 103.088488
+  }
+];
+
 const enchance = compose(
   withProps({
     googleMapURL: "https://maps.googleapis.com/maps/api/js?v=3.exp&libraries=geometry,drawing,places",
@@ -35,14 +95,33 @@ const enchance = compose(
 
 const Map = enchance((props) =>
   <GoogleMap
-    defaultZoom={8}
-    defaultCenter={{ lat: -34.397, lng: 150.644 }}
+    defaultZoom={9}
+    defaultCenter={{ lat: 16.5986803, lng: 102.4644866 }}
   >
-    {/* {props.isMarkerShown && <Marker position={{ lat: -34.397, lng: 150.644 }} />} */}
+    {
+      devices.map((index) => (
+        <Marker
+          position={devicesLocation[index]}
+        />
+      ))
+    }
   </GoogleMap>
 );
 
-const Home = () => {
+const enchance2 = compose(
+  withState("devicesData", "setDevicesData", []),
+  lifecycle({
+    componentDidMount() {
+      devices.map((name, index) => {
+        const device = firebaseApp.database().ref(`devices/${name}`).limitToLast(1).on("child_added", (snapshot) => {
+          console.log(index, snapshot.val());
+          this.props.setDevicesData(this.props.devicesData);
+        });
+      });
+    }
+  }));
+
+const Home = (props) => {
   return (
     <div>
       <Navbar style={{
@@ -109,4 +188,4 @@ const Home = () => {
   );
 };
 
-export default Home;
+export default enchance2(Home);
